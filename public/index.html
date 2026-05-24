@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paystack Operations Console</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Auth Screen Overlay (Sleek Glassmorphic Portal) -->
+  <div id="auth-screen" class="auth-container">
+    <div class="auth-card glass">
+      <div class="auth-logo-area">
+        <span class="logo-dot"></span>
+        <span class="auth-title">Paystack Console</span>
+      </div>
+      <p class="auth-subtitle">Verify your identity to open the secure operations deck.</p>
+      
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="auth-email">Email Address</label>
+          <input type="email" id="auth-email" class="form-control" required placeholder="e.g. pilot@agency.com">
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Security Password</label>
+          <input type="password" id="auth-password" class="form-control" required placeholder="••••••••">
+        </div>
+        
+        <div class="auth-buttons">
+          <button type="submit" id="btn-login" class="btn btn-primary btn-block" style="padding: 14px;">
+            <span>Sign In to Dashboard</span>
+          </button>
+        </div>
+      </form>
+      <div id="auth-error-box" class="auth-error hidden"></div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="app-container hidden">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-area">
+          <span class="logo-dot"></span>
+          <span class="logo-text">Paystack Console</span>
+        </div>
+        <div class="mode-badge live-mode">Live Mode</div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="overview">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+          Overview
+        </button>
+        <button class="nav-btn" data-tab="transactions">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          Transactions
+        </button>
+        <button class="nav-btn" data-tab="customers">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Customers
+        </button>
+        <button class="nav-btn" data-tab="transfers">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          Send Money
+        </button>
+        <button class="nav-btn" data-tab="charge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+          Request Payment
+        </button>
+        <button class="nav-btn" data-tab="subscriptions">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          Billing Plans
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="key-status-box">
+          <div class="key-label">Active Secret Key</div>
+          <div class="key-value" id="masked-key">sk_live_...476f</div>
+        </div>
+        <button class="btn btn-secondary btn-block" id="btn-signout" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Header -->
+      <header class="content-header">
+        <div class="header-title-area">
+          <h1 id="page-title">Overview</h1>
+          <p id="page-subtitle" class="text-secondary">Real-time status of your backend operations</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary btn-icon" id="refresh-all-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+            Refresh Data
+          </button>
+        </div>
+      </header>
+
+      <!-- Active View Container -->
+      <div class="tab-pane active" id="overview-tab">
+        <!-- Balance Grid -->
+        <div class="metrics-grid" id="balance-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">
+          <div class="metric-card glass">
+            <div class="metric-header">
+              <span class="metric-title">Wallet Balance</span>
+              <span class="currency-tag">KES</span>
+            </div>
+            <div class="metric-value" id="balance-ngn">Ksh 0.00</div>
+            <div class="metric-footer text-success">Available for payout</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-header">
+              <span class="metric-title">Pending Payout Queue</span>
+              <span class="currency-tag" id="queue-currency-tag">KES</span>
+            </div>
+            <div class="metric-value text-warning" id="pending-queue-val">Ksh 0.00</div>
+            <div class="metric-footer text-warning">Awaiting settlement cycle</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-header">
+              <span class="metric-title">Total Money In</span>
+              <span class="currency-tag" id="in-currency-tag">KES</span>
+            </div>
+            <div class="metric-value text-success" id="total-money-in">Ksh 0.00</div>
+            <div class="metric-footer text-success">All successful collections</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-header">
+              <span class="metric-title">Total Settled Out</span>
+              <span class="currency-tag" id="out-currency-tag">KES</span>
+            </div>
+            <div class="metric-value text-danger" id="total-money-out">Ksh 0.00</div>
+            <div class="metric-footer text-secondary">Swept to bank & transfers</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-header">
+              <span class="metric-title">Payout Operations</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="metric-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </div>
+            <div class="metric-value" id="payouts-count">0</div>
+            <div class="metric-footer text-secondary">Total outgoing entries</div>
+          </div>
+        </div>
+
+        <!-- Section: Activity Overview -->
+        <div class="section-row">
+          <div class="content-card glass flex-2">
+            <div class="card-header">
+              <h2>Recent Payments</h2>
+              <button class="text-btn view-all-link" data-target-tab="transactions">View all</button>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="recent-payments-table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Reference</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">Loading payments...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="content-card glass flex-1">
+            <div class="card-header">
+              <h2>Environment Details</h2>
+            </div>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">API Base URL</span>
+                <span class="info-value text-code">https://api.paystack.co</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">SDK Mode</span>
+                <span class="info-value text-success">Live (Real Money)</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">IP Whitelist Status</span>
+                <span class="info-value text-warning">Monitoring</span>
+              </div>
+              <div class="info-item text-warning-box">
+                <strong>🔒 Security Warning</strong>
+                <p>This application is connected to your live API. Do not expose this dashboard over the public internet without proper authentication.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Transactions -->
+      <div class="tab-pane" id="transactions-tab">
+        <div class="action-bar-row">
+          <!-- Verify Box -->
+          <div class="content-card glass action-card">
+            <h3>Verify Transaction</h3>
+            <p class="text-secondary card-desc">Check payment status using its reference</p>
+            <form id="verify-form" class="inline-form">
+              <input type="text" id="verify-ref" placeholder="e.g. T29384729384" required class="form-control">
+              <button type="submit" class="btn btn-primary">Verify Status</button>
+            </form>
+          </div>
+
+          <!-- Refund Box -->
+          <div class="content-card glass action-card">
+            <h3>Process Refund</h3>
+            <p class="text-secondary card-desc">Refund a transaction partially or fully</p>
+            <form id="refund-form" class="inline-form">
+              <input type="text" id="refund-tx" placeholder="Transaction Reference or ID" required class="form-control">
+              <input type="number" id="refund-amount" placeholder="Amount (optional, in kobo)" class="form-control">
+              <button type="submit" class="btn btn-danger">Refund</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="content-card glass">
+          <div class="card-header">
+            <h2>Payment Transactions</h2>
+            <div class="header-filters">
+              <select id="tx-filter-status" class="form-control compact">
+                <option value="">All Statuses</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
+                <option value="abandoned">Abandoned</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="payments-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Reference</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Channel</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="7" class="text-center text-muted">Loading transactions...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Customers -->
+      <div class="tab-pane" id="customers-tab">
+        <div class="section-row">
+          <!-- Left: List -->
+          <div class="content-card glass flex-2">
+            <div class="card-header">
+              <h2>Customer Base</h2>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="customers-table">
+                <thead>
+                  <tr>
+                    <th>Customer Name</th>
+                    <th>Email Address</th>
+                    <th>Phone</th>
+                    <th>Customer Code</th>
+                    <th>Date Added</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">Loading customers...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right: Create Customer Form -->
+          <div class="content-card glass flex-1">
+            <div class="card-header">
+              <h2>Register Customer</h2>
+            </div>
+            <form id="create-customer-form" class="stacked-form">
+              <div class="form-group">
+                <label for="cust-email">Email Address *</label>
+                <input type="email" id="cust-email" required placeholder="e.g. john@example.com" class="form-control">
+              </div>
+              <div class="form-group-row">
+                <div class="form-group">
+                  <label for="cust-fname">First Name</label>
+                  <input type="text" id="cust-fname" placeholder="John" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label for="cust-lname">Last Name</label>
+                  <input type="text" id="cust-lname" placeholder="Doe" class="form-control">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="cust-phone">Phone Number</label>
+                <input type="tel" id="cust-phone" placeholder="e.g. +2348012345678" class="form-control">
+              </div>
+              <button type="submit" class="btn btn-primary full-width">Add Customer</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Transfers (Send Money) -->
+      <div class="tab-pane" id="transfers-tab">
+        <!-- Step Cards -->
+        <div class="section-row">
+          
+          <!-- Left side: Resolve & Create Recipient / Initiate Payout -->
+          <div class="flex-1 stacked-cards">
+            
+            <!-- Card 1: Bank Account Lookup (Name Enquiry) -->
+            <div class="content-card glass">
+              <div class="card-header">
+                <h2>Account Verification</h2>
+              </div>
+              <p class="text-secondary text-sm">Verify bank account details before initiating any transfer.</p>
+              <form id="resolve-bank-form" class="stacked-form">
+                <div class="form-group">
+                  <label for="resolve-country">Destination Country</label>
+                  <select id="resolve-country" class="form-control">
+                    <option value="nigeria">Nigeria</option>
+                    <option value="ghana">Ghana</option>
+                    <option value="kenya">Kenya</option>
+                    <option value="south africa">South Africa</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="resolve-bank">Select Bank</label>
+                  <select id="resolve-bank" required class="form-control">
+                    <option value="">Choose a country first</option>
+                  </select>
+                </div>
+                
+                <!-- Lookup notice banner for Kenya / Mobile Money -->
+                <div class="alert-box info hidden" id="lookup-notice-box" style="font-size: 13px; line-height: 1.4; padding: 10px; border-radius: 6px; background: rgba(52, 152, 219, 0.1); border: 1px solid rgba(52, 152, 219, 0.2); margin-bottom: 12px; color: #3498db;">
+                  💡 <strong>Mobile Money Notice:</strong> M-Pesa in Kenya does not support automated bank name lookups. Please manually type the recipient's name below to save them directly!
+                </div>
+
+                <div class="form-group">
+                  <label for="resolve-account">Account Number</label>
+                  <input type="text" id="resolve-account" required placeholder="10 digits (e.g. 0123456789)" class="form-control">
+                </div>
+
+                <!-- Manual name entry for Mobile Money -->
+                <div class="form-group hidden" id="manual-recipient-name-group">
+                  <label for="manual-recipient-name">Recipient Name (Manual Entry)</label>
+                  <input type="text" id="manual-recipient-name" placeholder="e.g. Jane Wambui" class="form-control">
+                </div>
+
+                <div class="resolve-result-box hidden" id="resolve-result">
+                  <span class="result-label">Account Holder Name:</span>
+                  <span class="result-name" id="resolved-name"></span>
+                </div>
+                <div class="form-actions-row">
+                  <button type="submit" class="btn btn-secondary full-width" id="btn-verify-account">Verify Account</button>
+                  <button type="button" class="btn btn-primary full-width hidden" id="btn-save-recipient">Add as Recipient</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Card 2: Send money out -->
+            <div class="content-card glass">
+              <div class="card-header">
+                <h2>Send Payout</h2>
+              </div>
+              <p class="text-secondary text-sm">Transfer money from your balance to a registered recipient.</p>
+              <form id="transfer-form" class="stacked-form">
+                <div class="form-group">
+                  <label for="transfer-recipient">Select Recipient</label>
+                  <select id="transfer-recipient" required class="form-control">
+                    <option value="">No recipients loaded</option>
+                  </select>
+                </div>
+                <div class="form-group-row">
+                  <div class="form-group flex-2">
+                    <label for="transfer-amount">Amount (in Local Currency)</label>
+                    <input type="number" step="0.01" id="transfer-amount" required placeholder="e.g. 5000.00" class="form-control">
+                  </div>
+                  <div class="form-group flex-1">
+                    <label for="transfer-currency">Currency</label>
+                    <select id="transfer-currency" class="form-control" disabled>
+                      <option value="NGN">NGN</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="transfer-reason">Reason / Narration</label>
+                  <input type="text" id="transfer-reason" placeholder="Payment for consulting services" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-danger full-width">Send Payout</button>
+              </form>
+            </div>
+
+          </div>
+
+          <!-- Right side: Outgoing Payouts History -->
+          <div class="content-card glass flex-1">
+            <div class="card-header">
+              <h2>Recent Outgoing Transfers</h2>
+            </div>
+            <div class="transfer-history-list" id="transfers-history-list">
+              <div class="text-center text-muted py-4">Loading transfer history...</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Row: Automated Bank Settlements (Payouts by Paystack) -->
+        <div class="content-card glass margin-top-lg" style="width: 100%;">
+          <div class="card-header">
+            <h2>Automated Bank Settlements (Payouts by Paystack)</h2>
+          </div>
+          <p class="text-secondary text-sm">Paystack automatically transfers your accumulated successful transaction balances directly into your verified bank account based on your payout schedule.</p>
+          <div class="table-container margin-top-md">
+            <table class="data-table" id="settlements-table">
+              <thead>
+                <tr>
+                  <th>Settlement ID</th>
+                  <th>Payout Destination</th>
+                  <th>Gross Amount</th>
+                  <th>Deducted Fees</th>
+                  <th>Net Payout</th>
+                  <th>Payout Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" class="text-center text-muted">Loading automated bank settlements...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab: Subscriptions & Billing Plans -->
+      <div class="tab-pane" id="subscriptions-tab">
+        <div class="section-row">
+          
+          <!-- Left: Create Plan Form -->
+          <div class="content-card glass flex-1">
+            <div class="card-header">
+              <h2>Create Billing Plan</h2>
+            </div>
+            <form id="create-plan-form" class="stacked-form">
+              <div class="form-group">
+                <label for="plan-name">Plan Name *</label>
+                <input type="text" id="plan-name" required placeholder="e.g. Monthly Premium Membership" class="form-control">
+              </div>
+              <div class="form-group-row">
+                <div class="form-group">
+                  <label for="plan-amount">Amount (Local Currency) *</label>
+                  <input type="number" step="0.01" id="plan-amount" required placeholder="e.g. 2500.00" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label for="plan-currency">Currency</label>
+                  <select id="plan-currency" class="form-control">
+                    <option value="NGN">NGN</option>
+                    <option value="USD">USD</option>
+                    <option value="GHS">GHS</option>
+                    <option value="KES">KES</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="plan-interval">Interval *</label>
+                <select id="plan-interval" required class="form-control">
+                  <option value="hourly">Hourly</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly" selected>Monthly</option>
+                  <option value="annually">Annually</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary full-width">Create Plan</button>
+            </form>
+          </div>
+
+          <!-- Right: Plans list -->
+          <div class="content-card glass flex-2">
+            <div class="card-header">
+              <h2>Existing Billing Plans</h2>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="plans-table">
+                <thead>
+                  <tr>
+                    <th>Plan Name</th>
+                    <th>Plan Code</th>
+                    <th>Price</th>
+                    <th>Interval</th>
+                    <th>Subscriptions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">Loading plans...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Section: Active Subscriptions -->
+        <div class="content-card glass margin-top-lg">
+          <div class="card-header">
+            <h2>Active Customer Subscriptions</h2>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="subscriptions-table">
+              <thead>
+                <tr>
+                  <th>Customer Email</th>
+                  <th>Subscription Code</th>
+                  <th>Billing Plan</th>
+                  <th>Status</th>
+                  <th>Start Date</th>
+                  <th>Card Code</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" class="text-center text-muted">Loading subscriptions...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Request Payment (M-Pesa) -->
+      <div class="tab-pane" id="charge-tab">
+        <div class="section-row">
+          
+          <!-- Left: Charge Form -->
+          <div class="content-card glass flex-1">
+            <div class="card-header">
+              <h2>Request M-Pesa Payment</h2>
+            </div>
+            <p class="text-secondary text-sm">Send an instant payment prompt (STK Push) directly to a customer's phone.</p>
+            <form id="charge-mpesa-form" class="stacked-form margin-top-lg">
+              <div class="form-group">
+                <label for="charge-email">Customer Email Address *</label>
+                <input type="email" id="charge-email" required placeholder="e.g. customer@domain.com" class="form-control">
+              </div>
+              <div class="form-group-row">
+                <div class="form-group flex-2">
+                  <label for="charge-amount">Amount (KES) *</label>
+                  <input type="number" step="0.01" id="charge-amount" required placeholder="e.g. 500.00" class="form-control">
+                </div>
+                <div class="form-group flex-1">
+                  <label for="charge-currency">Currency</label>
+                  <input type="text" id="charge-currency" value="KES" disabled class="form-control">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="charge-phone">M-Pesa Phone Number *</label>
+                <input type="tel" id="charge-phone" required placeholder="e.g. +254712345678 or 0712345678" class="form-control">
+                <small class="text-muted" style="font-size: 11px; margin-top: 4px;">Enter the Kenyan phone number connected to M-Pesa.</small>
+              </div>
+              <button type="submit" class="btn btn-primary full-width margin-top-lg">Send Payment Prompt</button>
+            </form>
+          </div>
+
+          <!-- Right: Charge Saved Card Form -->
+          <div class="content-card glass flex-1">
+            <div class="card-header">
+              <h2>Charge Saved Card</h2>
+            </div>
+            <p class="text-secondary text-sm">Charge a customer again using their secure saved Authorization Code.</p>
+            <form id="charge-token-form" class="stacked-form margin-top-lg">
+              <div class="form-group">
+                <label for="token-email">Customer Email Address *</label>
+                <input type="email" id="token-email" required placeholder="e.g. 63a75@email.com" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="token-auth">Authorization Code *</label>
+                <input type="text" id="token-auth" required placeholder="e.g. AUTH_w93dwnur3k" class="form-control text-code">
+                <small class="text-muted" style="font-size: 11px; margin-top: 4px;">Copy this code from any successful transaction's receipt details.</small>
+              </div>
+              <div class="form-group-row">
+                <div class="form-group flex-2">
+                  <label for="token-amount">Amount *</label>
+                  <input type="number" step="0.01" id="token-amount" required placeholder="e.g. 50.00" class="form-control">
+                </div>
+                <div class="form-group flex-1">
+                  <label for="token-currency">Currency</label>
+                  <select id="token-currency" class="form-control">
+                    <option value="NGN">NGN</option>
+                    <option value="USD">USD</option>
+                    <option value="KES" selected>KES</option>
+                    <option value="GHS">GHS</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-danger full-width margin-top-lg">Charge Saved Card</button>
+            </form>
+          </div>
+
+        </div>
+        
+        <!-- Bottom Row: Saved Cards Directory -->
+        <div class="content-card glass margin-top-lg" style="width: 100%;">
+          <div class="card-header">
+            <h2>Saved Cards Directory</h2>
+          </div>
+          <p class="text-secondary text-sm">A list of all unique authorized payment cards captured from your successful transactions. Click "Use Card" to auto-populate the charge form above.</p>
+          <div class="table-container margin-top-md">
+            <table class="data-table" id="saved-cards-table">
+              <thead>
+                <tr>
+                  <th>Customer Email</th>
+                  <th>Card Brand</th>
+                  <th>Last 4 Digits</th>
+                  <th>Bank / Country</th>
+                  <th>Authorization Code</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" class="text-center text-muted">No saved cards found in transactions history.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Detail Modals -->
+  <div id="tx-modal" class="modal hidden">
+    <div class="modal-content glass">
+      <span class="close-btn" id="close-tx-modal">&times;</span>
+      <h2 id="modal-tx-title">Payment Receipt</h2>
+      <hr class="modal-divider">
+      <div class="modal-body" id="modal-tx-body">
+        <!-- Populated via js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase App & Auth SDKs (Compat v9/v10 for fast HTML5 setup) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
